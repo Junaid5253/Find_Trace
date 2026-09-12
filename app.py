@@ -86,17 +86,26 @@ def metric_card(label, value, note):
 
 def match_card(rank, result):
     overall = result["overall_score"]
-    st.markdown(f"""
-    <div class="match-card">
-        <div class="match-rank">MATCH 0{rank}</div>
-        <div class="match-name">{result['name']}</div>
-        <div class="score">{overall:.1f}%</div>
-        <div class="score-label">overall relevance</div>
-        <div class="bar"><div class="bar-fill" style="width: {max(0, min(100, overall)):.1f}%"></div></div>
-        <div class="evidence">FACE {result['face_score'] * 100:.1f}%  /  TEXT {result['text_score'] * 100:.1f}%  /  META {result['metadata_score'] * 100:.1f}%  /  LOCATION {result['location_score'] * 100:.1f}%</div>
-        <div class="verification">Potential match - human verification required</div>
-    </div>
-    """, unsafe_allow_html=True)
+    with st.container(border=True):
+        image_column, details_column = st.columns([1, 3])
+        with image_column:
+            image_path = Path(result["image_path"])
+            if image_path.exists():
+                st.image(str(image_path), width=150)
+            else:
+                st.caption("Photo unavailable")
+        with details_column:
+            st.markdown(f"""
+            <div class="match-card">
+                <div class="match-rank">MATCH 0{rank}</div>
+                <div class="match-name">{result['name']}</div>
+                <div class="score">{overall:.1f}%</div>
+                <div class="score-label">overall relevance</div>
+                <div class="bar"><div class="bar-fill" style="width: {max(0, min(100, overall)):.1f}%"></div></div>
+                <div class="evidence">FACE {result['face_score'] * 100:.1f}%  /  TEXT {result['text_score'] * 100:.1f}%  /  META {result['metadata_score'] * 100:.1f}%  /  LOCATION {result['location_score'] * 100:.1f}%</div>
+                <div class="verification">Potential match - human verification required</div>
+            </div>
+            """, unsafe_allow_html=True)
 
 @st.cache_resource
 def get_store():
