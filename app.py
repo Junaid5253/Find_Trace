@@ -65,6 +65,9 @@ html, body, [class*="css"] { font-family: 'Manrope', sans-serif; }
 .bar-fill { height: 100%; background: var(--teal); border-radius: inherit; }
 .evidence { color: var(--muted); font-family: 'DM Mono', monospace; font-size: .68rem; line-height: 1.65; }
 .verification { color: #966322; font-size: .73rem; font-weight: 700; margin-top: .6rem; }
+.record-label { color: var(--muted); font-family: 'DM Mono', monospace; font-size: .68rem; letter-spacing: .04em; text-transform: uppercase; }
+.record-value { color: var(--ink); font-size: .86rem; line-height: 1.5; margin: .15rem 0 .75rem; }
+.record-note { color: var(--muted); font-size: .78rem; line-height: 1.5; }
 .about-panel { padding: 1.3rem 1.45rem; border: 1px solid var(--line); border-radius: 12px; background: var(--white); }
 .stButton > button, .stFormSubmitButton > button { border-radius: 8px; font-weight: 700; min-height: 2.65rem; }
 .stButton > button[kind="primary"], .stFormSubmitButton > button[kind="primary"] { background: var(--teal); border-color: var(--teal); }
@@ -106,6 +109,17 @@ def match_card(rank, result):
                 <div class="verification">Potential match - human verification required</div>
             </div>
             """, unsafe_allow_html=True)
+        with st.expander(f"View full candidate record: {result['name']}"):
+            detail_left, detail_right = st.columns(2)
+            with detail_left:
+                st.markdown(f'<div class="record-label">Record ID</div><div class="record-value">{result.get("id", "Not available")}</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="record-label">Name / identifier</div><div class="record-value">{result.get("name") or "Not provided"}</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="record-label">Approximate age</div><div class="record-value">{result.get("age") or "Not provided"}</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="record-label">Gender</div><div class="record-value">{result.get("gender") or "Not provided"}</div>', unsafe_allow_html=True)
+            with detail_right:
+                st.markdown(f'<div class="record-label">Location</div><div class="record-value">{result.get("location") or "Not provided"}</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="record-label">Physical / clothing description</div><div class="record-value">{result.get("description") or "Not provided"}</div>', unsafe_allow_html=True)
+            st.markdown('<div class="record-note">This expanded view shows the candidate fields currently stored in the database. The matching evidence above belongs to this investigation result.</div>', unsafe_allow_html=True)
 
 @st.cache_resource
 def get_store():
