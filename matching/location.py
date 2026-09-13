@@ -1,46 +1,41 @@
 import math
-import os
-import requests
+from functools import lru_cache
+
+from geopy.geocoders import Nominatim
 
 
+geolocator = Nominatim(
+    user_agent="findtrace-missing-person-system"
+)
+
+
+@lru_cache(maxsize=500)
 def geocode_location(location):
-    """Convert a human-readable location into latitude/longitude using Google Maps."""
+    """
+    Convert a human-readable location into latitude/longitude
+    using Nominatim (OpenStreetMap).
+    """
+
     if not location:
         return None
 
-    api_key = os.getenv("GOOGLE_MAPS_API_KEY")
+    location = str(location).strip()
 
-    if not api_key:
-        try:
-            import streamlit as st
-            api_key = st.secrets.get("GOOGLE_MAPS_API_KEY")
-        except Exception:
-            api_key = None
-
-    if not api_key:
+    if not location:
         return None
 
     try:
-        response = requests.get(
-            "https://maps.googleapis.com/maps/api/geocode/json",
-            params={
-                "address": location,
-                "key": api_key,
-            },
-            timeout=10,
+        result = geolocator.geocode(
+            location,
+            timeout=10
         )
 
-        response.raise_for_status()
-        data = response.json()
-
-        if data.get("status") != "OK" or not data.get("results"):
+        if result is None:
             return None
 
-        coordinates = data["results"][0]["geometry"]["location"]
-
         return {
-            "lat": coordinates["lat"],
-            "lng": coordinates["lng"],
+            "lat": result.latitude,
+            "lng": result.longitude,
         }
 
     except Exception:
@@ -48,7 +43,10 @@ def geocode_location(location):
 
 
 def haversine_distance_km(lat1, lon1, lat2, lon2):
-    """Calculate the real geographic distance between two coordinates."""
+    """
+    Calculate the geographic distance between two coordinates.
+    Returns distance in kilometers.
+    """
 
     earth_radius = 6371.0
 
@@ -79,14 +77,14 @@ def location_score(query, candidate):
     1.0 = extremely close
     0.8 = relatively close
     0.5 = moderate distance
-    0.0 = very far / unavailable
+    0.0 = very far or unavailable
     """
 
     if not query or not candidate:
         return 0.0
 
-    query_coordinates = geocode_location(query)
-    candidate_coordinates = geocode_location(candidate)
+    query_coordinates = geocode_location(str(query).strip())
+    candidate_coordinates = geocode_location(str(candidate).strip())
 
     if not query_coordinates or not candidate_coordinates:
         return 0.0
@@ -98,29 +96,28 @@ def location_score(query, candidate):
         candidate_coordinates["lng"],
     )
 
-    # Geographic evidence scoring
     if distance <= 2:
         return 1.00
 
-    if distance <= 5:
+    elif distance <= 5:
         return 0.95
 
-    if distance <= 10:
+    elif distance <= 10:
         return 0.90
 
-    if distance <= 25:
+    elif distance <= 25:
         return 0.80
 
-    if distance <= 50:
+    elif distance <= 50:
         return 0.68
 
-    if distance <= 100:
+    elif distance <= 100:
         return 0.50
 
-    if distance <= 250:
+    elif distance <= 250:
         return 0.30
 
-    if distance <= 500:
+    elif distance <= 500:
         return 0.15
 
     return 0.0
