@@ -17,8 +17,8 @@ data/findtrace.db
 
 # Uploaded/generated data
 data/uploads/
-candidates/
-
+candidates
+case_uploads/
 # Environment variables
 .env
 
