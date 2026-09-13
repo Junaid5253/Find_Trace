@@ -6,4 +6,4 @@ insightface
 onnxruntime==1.22.0
 sentence-transformers==5.1.0
 requests
-html
+geopy
